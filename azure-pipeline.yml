@@ -1,0 +1,80 @@
+parameters:
+- name: file_path
+  displayName: Enter path to file
+  type: string
+
+- name: server
+  displayName: Enter R10 environment to be processed
+  type: string
+  values:
+    - SIT
+    - DEV01
+    - TEST02
+    - TEST03
+    - TEST04
+    - TEST05
+    - TEST06
+    - TEST07
+    - TEST08
+    - TEST09
+    - TEST10
+    - TEST11
+    - TEST12
+    - TEST13
+
+stages:
+- stage: CheckCentralServer
+  displayName: Checking Central Server ${{ parameters.environment }}
+  
+  variables:
+    - name: environment
+      value: ${{ parameters.environment }}
+  
+  jobs:
+    - job: FetchVMNameFromAzureCentral
+      displayName: Fetch VM Name From Azure ${{ parameters.environment }}
+      pool: Coles-Private-Hosted-Windows-NonProd-Scalable
+      steps:
+        - task: AzureCLI@2
+          continueOnError: false
+          inputs:
+            azureSubscription: "Azure Cloud NonProd - SupermarketsR10 - ${{ parameters.environment }}"
+            scriptType: "pscore"
+            scriptLocation: "inlineScript"
+            inlineScript: |
+              $resourceGroupName = @('DATA', 'MWARE', 'APP')
+              foreach ($rg in $resourceGroupName) {
+                  Write-Output "RG_STORECUSTOMER_SUPERMARKETSR10_$($rg)_$(environment)_AUE"
+                  $vm_machine = az vm list --resource-group "RG_STORECUSTOMER_SUPERMARKETSR10_$($rg)_$(environment)_AUE" --query '[].name' --output tsv
+                  echo "##vso[task.setvariable variable=$rg;isOutput=true]$vm_machine"
+              }
+
+          name: vmNames
+
+        - task: Bash@3
+          continueOnError: true
+          inputs:
+            targetType: "inline"
+            script: |
+              echo "machine name DATA: $(vmNames.DATA)"
+              echo "machine name MWARE: $(vmNames.MWARE)"
+              echo "machine name APP: $(vmNames.APP)"
+
+- stage: PrepareFiles
+  displayName: Prepare Given Metadata and Promotion Export Files
+  dependsOn: CheckCentralServer
+  condition: succeeded ('CheckCentralServer')
+  pool: Coles-Smkts-Private-OnPremHosted-Windows-NonProduction
+
+  jobs:
+    - job: UnzipFiles
+      displayName: Unzip All Files
+
+      steps:
+        - task: PowerShell@2
+          displayName: Extract All Files
+          name: ExtractAllFiles
+          inputs:
+            pwsh: true
+            targetType: "filePath"
+            filePath: $(System.DefaultWorkingDirectory)/scripts/unzip.ps1
