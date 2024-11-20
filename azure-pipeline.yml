@@ -1,9 +1,11 @@
 parameters:
-- name: file_path
-  displayName: Enter path to file
+- name: SourcePath
+  displayName: Enter source path to file
   type: string
+# I don't think this works since it needs a remote file location?
+# Check Paul's .ps1 script (line 397-401) might be an example of how to solve this
 
-- name: server
+- name: Server
   displayName: Enter R10 environment to be processed
   type: string
   values:
@@ -78,3 +80,4 @@ stages:
             pwsh: true
             targetType: "filePath"
             filePath: $(System.DefaultWorkingDirectory)/scripts/unzip.ps1
+            arguments: -SourcePath ${{ parameters.SourcePath }}
