@@ -7,9 +7,7 @@
 Param([string]$SourcePath
 )
 
-# Parameters needed: the $SourcePath
-$SourcePath = "C:\Temp\Testing"
-
+# TODO: update destination path to \\wattle\grpdata\..??????
 # Get timestamp (to milliseconds) to create unique folder name
 $TimeStamp = Get-Date -Format "ddMMyyyyHHmmssfff"
 $DestinationPath = "\\nasfile10\grpdata\Ollie\PromotionExportAutomation\" + $TimeStamp
@@ -31,7 +29,9 @@ Get-ChildItem -Path $DestinationPath -Recurse -File | ForEach-Object {
 
     if ($File.Name.Substring(0, 15) -eq "PromotionExport") {
         Move-Item -Path $File.FullName -Destination $DestinationPromotionExport
-    } else {
+    } elseif ($File.Name.Substring(9, 2) -eq "LT") {
         Move-Item -Path $File.FullName -Destination $DestinationLT
+    } else {
+        Write-Host "Folder contains file that is neither a metadata or PromotionExport file!!"
     }
 }
