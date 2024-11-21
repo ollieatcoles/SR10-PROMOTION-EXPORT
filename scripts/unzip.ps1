@@ -35,3 +35,7 @@ Get-ChildItem -Path $DestinationPath -Recurse -File | ForEach-Object {
         Write-Host "Folder contains file that is neither a metadata or PromotionExport file!!"
     }
 }
+
+$CurrentDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
+$NextDir = Join-Path -Path $CurrentDir -ChildPath "initiate-ansible.ps1"
+& $NextDir
