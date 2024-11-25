@@ -114,9 +114,9 @@ Function TriggerAnsible {
     } catch {$_}
 }
 
-###########################
-## FUNCTIONS START HERE? ##
-###########################
+#########################################
+#######   FUNCTIONS START HERE?   #######
+#########################################
 
 If ($Mware -match "") {
     $MwareArray = $($Mware.split(" "))
