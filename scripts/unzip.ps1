@@ -28,9 +28,9 @@ New-Item -ItemType Directory -Force -Path $DestinationLT, $DestinationPromotionE
 Get-ChildItem -Path $DestinationPath -Recurse -File | ForEach-Object {
     $File = $_
 
-    if ($File.Name.Substring(0, 15) -eq "PromotionExport") {
+    if ($File.Name -match "PromotionExport") {
         Move-Item -Path $File.FullName -Destination $DestinationPromotionExport
-    } elseif ($File.Name.Substring(9, 2) -eq "LT") {
+    } elseif ($File.Name -match "LT") {
         Move-Item -Path $File.FullName -Destination $DestinationLT
     } else {
         Write-Host "Folder contains file that is neither a metadata or PromotionExport file!!"
