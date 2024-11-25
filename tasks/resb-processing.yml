@@ -1,0 +1,10 @@
+- name: "Process Promotion Export Files"
+  win_shell: |
+    $DestinationPath = "{{destination_path}}"
+    $ProcessFolder = "R:\LocalApp\RESB\Coles\Services\LMS"
+
+    If (Test-Path $DestinationPath) {
+      Do {
+        #??
+      } Until ()
+    }
