@@ -1,0 +1,7 @@
+- hosts: SR10_PROMOTION_EXPORT_RESB
+  serial: 1
+  order: sorted
+  gather_facts: no
+  ignore_unreachable: true
+  tasks:
+    - import_tasks: ../tasks/resb-processing.yml
