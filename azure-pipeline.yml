@@ -11,7 +11,7 @@ parameters:
 # I don't think this works since it needs a remote file location?
 # Check Paul's .ps1 script (line 397-401) might be an example of how to solve this
 
-- name: Server
+- name: Environment
   displayName: Enter R10 environment to be processed
   type: string
   values:
@@ -32,15 +32,15 @@ parameters:
 
 stages:
 - stage: CheckCentralServer
-  displayName: Checking Central Server ${{ parameters.environment }}
+  displayName: Checking Central Server ${{ parameters.Environment }}
   
   variables:
     - name: environment
-      value: ${{ parameters.environment }}
+      value: ${{ parameters.Environment }}
   
   jobs:
     - job: FetchVMNameFromAzureCentral
-      displayName: Fetch VM Name From Azure ${{ parameters.environment }}
+      displayName: Fetch VM Name From Azure ${{ parameters.Environment }}
       pool: Coles-Private-Hosted-Windows-NonProd-Scalable
       steps:
         - task: AzureCLI@2
@@ -52,7 +52,7 @@ stages:
             inlineScript: |
               $resourceGroupName = @('DATA', 'MWARE', 'APP')
               foreach ($rg in $resourceGroupName) {
-                  Write-Output "RG_STORECUSTOMER_SUPERMARKETSR10_$($rg)_$(environment)_AUE"
+                  Write-Output "RG_STORECUSTOMER_SUPERMARKETSR10_$($rg)_$(Environment)_AUE"
                   $vm_machine = az vm list --resource-group "RG_STORECUSTOMER_SUPERMARKETSR10_$($rg)_$(environment)_AUE" --query '[].name' --output tsv
                   echo "##vso[task.setvariable variable=$rg;isOutput=true]$vm_machine"
               }
@@ -87,3 +87,13 @@ stages:
             targetType: "filePath"
             filePath: $(System.DefaultWorkingDirectory)/scripts/unzip.ps1
             arguments: -SourcePath ${{ parameters.SourcePath }}
+
+        - task: PowerShell@2
+          displayName: Initiate Ansible
+          name: InitiateAnsible
+          inputs:
+            pwsh: true
+            targetType: "filePath"
+            filePath: $(System.DefaultWorkingDirectory)/scripts/initiate-ansible.ps1
+            arguments: '-DestinationPath $(ExtractAllFiles.DestinationPath)' -Environment  ${{ parameters.Environment }} -Mware '$(mware)' -AnsibleUser $(aap-user) -AnsiblePass $(aap-password) -TemplateID -templateId "???"
+            # TODO: update template ID

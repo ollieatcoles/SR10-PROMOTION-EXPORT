@@ -5,6 +5,7 @@
 ######################################################################################
 
 Param(
+    [string]$DestinationPath,
     [string]$Environment,
     [string]$Mware,
     [string]$AnsibleUser,
@@ -93,8 +94,8 @@ Function CreateHosts {
                     variables = @{
                         ansible_ssh_common_args = "-o StrictHostKeyChecking=no -o userknownhostsfile=/dev/null"
                         enabled = $true
-                        RESBSERVER = (($resb).split("."))[0]
-                        ZIPFILE = $ZipFile
+                        resb_server = (($resb).split("."))[0]
+                        destination_path = $DestinationPath
                     } | ConvertTo-Json -Compress
                 }
 
@@ -134,7 +135,7 @@ $Online = Test-Connection -Cn $RESB -BufferSize 16  -Count 4 -TimeToLive 10 -ea 
 $RESB += ".retail.ad.cmltd.net.au"
 $MyObj = "" | Select Host, Group
 $MyObj.host = $RESB
-$MyObj.group = "SR10_PRODUCT_DATA_LOAD_RESB"
+$MyObj.group = "SR10_PROMOTION_EXPORT_RESB"
 $MyObjHostList += $MyObj
 
 If ($Online) {
@@ -143,3 +144,7 @@ If ($Online) {
     CreateHosts
     TriggerAnsible
 }
+
+$CurrentDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
+$NextDir = Join-Path -Path $CurrentDir -ChildPath "initiate-ansible.ps1"
+& $NextDir
