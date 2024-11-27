@@ -15,9 +15,11 @@ $CheckLogFolder = "R:\LocalApp\RESB\Coles\Logs\LOG"
 $TransitinFolder = "R:\LocalApp\RESB\Coles\Services\LMS\mqsitransitin"
 # $ArchiveFolder = "R:\LocalApp\RESB\Coles\Services\LMS\mqsiarchive"
 
-$Global:FileType = ""
-
 Function ProcessFiles {
+    Param (
+        [string] $FileType
+    )
+
     $Path = $SourcePath + "\" + $FileType
     $StartTime = Get-Date
 
@@ -48,14 +50,15 @@ Function ProcessFiles {
         Start-Sleep -Milliseconds 100
     }
 
-    $HasError = ErrorCheck -StartTime $StartTime
-    $HasLog = LogCheck -StartTime $StartTime
+    $HasError = ErrorCheck -FileType $FileType -StartTime $StartTime
+    $HasLog = LogCheck -FileType $FileType -StartTime $StartTime
 
     return $HasError, $HasLog
 }
 
 Function ErrorCheck {
     Param(
+        [string] $FileType,
         [string] $StartTime
     )
     Write-Host "Checking ERR logs"
@@ -91,6 +94,7 @@ Function ErrorCheck {
 
 Function LogCheck {
     Param(
+        [string] $FileType,
         [string] $StartTime
     )
     Write-Host "Checking LOG logs"
@@ -105,7 +109,7 @@ Function LogCheck {
     If (Test-Path $CheckLogFolder) {
         # Retrieve the latest ERR log modified time
         $LogLastModified = (Get-Item -Path $CheckLogFolder).LastWriteTime
-        If ($CurrentTime.AddMinutes($TotalTime) -ge $ErrorLastModified) {
+        If ($CurrentTime.AddMinutes($TotalTime) -ge $LogLastModified) {
             # Case 1: There is logs in the LOG folder, which is good
             Write-Host "Log is found, which is good"
             Write-Host "-----------------"
@@ -141,21 +145,17 @@ Function LogCheck {
             and user would like to continue on.
 #>
 Function Main {
-    # Process the metadata files
-    $Global:FileType = "LT"
 
-    # Unpacking the return values
-    $Result = ProcessFiles
+    # Processing the LT files
+    $Result = ProcessFiles -FileType "LT"
     $HasError = $Result[0]
     $HasLog = $Result[1]
 
     # Metadata: if no error found and expected log file is produced
     If (!($HasError) -and $HasLog) {
-        # Process promotion files
-        $Global:FileType = "Promotion Export"
 
-        # Unpacking the return values
-        $Result = ProcessFiles
+        # Processing the promotion files
+        $Result = ProcessFiles -FileType "Promotion Export"
         $HasError = $Result[0]
         $HasLog = $Result[1]
 
@@ -173,11 +173,9 @@ Function Main {
         $Continue = (Read-Host "There has been an error with the metadata file. Would you like to continue? (Y or N)").ToUpper()
 
         If ($Continue -match "Y") {
-            # Process promotion files
-            $Global:FileType = "Promotion Export"
 
-            # Unpacking the return values
-            $Result = ProcessFiles
+            # Processing the promotion files
+            $Result = ProcessFiles -FileType "Promotion Export"
             $HasError = $Result[0]
             $HasLog = $Result[1]
 
