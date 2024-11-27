@@ -17,74 +17,6 @@ $TransitinFolder = "R:\LocalApp\RESB\Coles\Services\LMS\mqsitransitin"
 
 $Global:FileType = ""
 
-<#
-.DESCRIPTION
-    The main function that calls ProcessFiles of each of the LT and Promotion file type.
-
-.NOTES
-    Output meaning:
-        0: process is completed with no error.
-        99: there is an error during the file processing stage, 
-            and user would like to stop the pipeline.
-        100: there is an error during the file processing stage, 
-            and user would like to continue on.
-#>
-Function Main {
-    # Process the metadata files
-    $Global:FileType = "LT"
-
-    # Unpacking the return values
-    $Result = ProcessFiles
-    $HasError = $Result[0]
-    $HasLog = $Result[1]
-
-    # Metadata: if no error found and expected log file is produced
-    If (!($HasError) -and $HasLog) {
-        # Process promotion files
-        $Global:FileType = "Promotion Export"
-
-        # Unpacking the return values
-        $Result = ProcessFiles
-        $HasError = $Result[0]
-        $HasLog = $Result[1]
-
-        # PromotionExport: if no error found and expected log file is produced
-        If (!($HasError) -and $HasLog) {
-            Write-Host "Promotion export process has been successfully completed!"
-            return 0
-        } else {
-            # PromotionExport: if error found, print message and stop the pipeline
-            Write-Host "There has been an error with promotion files!"
-            return 100
-        }
-    } else {
-        # Metadata: if error found, ask user if they want to continue on
-        $Continue = (Read-Host "There has been an error with the metadata file. Would you like to continue? (Y or N)").ToUpper()
-
-        If ($Continue -match "Y") {
-            # Process promotion files
-            $Global:FileType = "Promotion Export"
-
-            # Unpacking the return values
-            $Result = ProcessFiles
-            $HasError = $Result[0]
-            $HasLog = $Result[1]
-
-            # PromotionExport: if no error found and expected log file is produced
-            If (!($HasError) -and $HasLog) {
-                Write-Host "Promotion export process has been successfully completed!"
-                return 0
-            } else {
-                Write-Host "There has been an error with promotion files!"
-                return 100
-            }
-        } else {
-            Write-Host "User has stopped the process."
-            return 99
-        }
-    }
-}
-
 Function ProcessFiles {
     $Path = $SourcePath + "\" + $FileType
     $StartTime = Get-Date
@@ -191,3 +123,77 @@ Function LogCheck {
         return 0
     }
 }
+
+#---------------------
+#  THE MAIN FUNCTION
+#---------------------
+
+<#
+.DESCRIPTION
+    The main function that calls ProcessFiles of each of the LT and Promotion file type.
+
+.NOTES
+    Output meaning:
+        0: process is completed with no error.
+        99: there is an error during the file processing stage, 
+            and user would like to stop the pipeline.
+        100: there is an error during the file processing stage, 
+            and user would like to continue on.
+#>
+Function Main {
+    # Process the metadata files
+    $Global:FileType = "LT"
+
+    # Unpacking the return values
+    $Result = ProcessFiles
+    $HasError = $Result[0]
+    $HasLog = $Result[1]
+
+    # Metadata: if no error found and expected log file is produced
+    If (!($HasError) -and $HasLog) {
+        # Process promotion files
+        $Global:FileType = "Promotion Export"
+
+        # Unpacking the return values
+        $Result = ProcessFiles
+        $HasError = $Result[0]
+        $HasLog = $Result[1]
+
+        # PromotionExport: if no error found and expected log file is produced
+        If (!($HasError) -and $HasLog) {
+            Write-Host "Promotion export process has been successfully completed!"
+            return 0
+        } else {
+            # PromotionExport: if error found, print message and stop the pipeline
+            Write-Host "There has been an error with promotion files!"
+            return 100
+        }
+    } else {
+        # Metadata: if error found, ask user if they want to continue on
+        $Continue = (Read-Host "There has been an error with the metadata file. Would you like to continue? (Y or N)").ToUpper()
+
+        If ($Continue -match "Y") {
+            # Process promotion files
+            $Global:FileType = "Promotion Export"
+
+            # Unpacking the return values
+            $Result = ProcessFiles
+            $HasError = $Result[0]
+            $HasLog = $Result[1]
+
+            # PromotionExport: if no error found and expected log file is produced
+            If (!($HasError) -and $HasLog) {
+                Write-Host "Promotion export process has been successfully completed!"
+                return 0
+            } else {
+                Write-Host "There has been an error with promotion files!"
+                return 100
+            }
+        } else {
+            Write-Host "User has stopped the process."
+            return 99
+        }
+    }
+}
+
+Main
