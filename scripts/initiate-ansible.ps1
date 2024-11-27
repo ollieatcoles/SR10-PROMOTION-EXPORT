@@ -16,10 +16,11 @@ Param(
 Write-Host "-Environment: " $Environment
 Write-Host "-Mware: " $Mware
 
-# ????????????????????????????????????????
+# TODO: confirm with Paul
 $HeaderAuth = @{ Authorization = "Basic " + [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes("$($AnsibleUser):$($AnsiblePass)")) }
 $GroupList = @{}
 
+# TODO: confirm with Paul
 Function DeleteGroups {
     ForEach ($Group in $MyObjHostList) {
         $GroupToDelete = $Group.group
@@ -42,6 +43,7 @@ Function DeleteGroups {
     }
 }
 
+# TODO: confirm with Paul
 Function CreateGroups {
     ForEach ($Group in $MyObjHostList) {
         $GroupToCreate - $Group.group
@@ -76,6 +78,7 @@ Function CreateGroups {
     return $GroupList
 }
 
+# TODO: confirm with Paul
 Function CreateHosts {
     ForEach ($MyHost in $MyObjHostList) {
         ForEach ($Group in $GroupList.Keys) {
@@ -105,8 +108,9 @@ Function CreateHosts {
     }
 }
 
+# TODO: confirm with Paul about templateID
 Function TriggerAnsible {
-    $Url = "https://aap.cmltd.net.au/api/v2/job_templates/$templateId/launch/" 
+    $Url = "https://aap.cmltd.net.au/api/v2/job_templates/$TemplateID/launch/" 
     
     try {
         Invoke-WebRequest -Uri $Url -Method Post -ContentType 'application/json' -Headers $HeaderAuth -UseBasicParsing -Noproxy
@@ -114,9 +118,10 @@ Function TriggerAnsible {
 }
 
 #########################################
-#######   FUNCTIONS START HERE?   #######
+######   FUNCTIONS START HERE     #######
 #########################################
 
+# TODO: confirm with Paul
 If ($Mware -match "") {
     $MwareArray = $($Mware.split(" "))
 

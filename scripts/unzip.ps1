@@ -8,10 +8,9 @@ Param(
     [string]$SourcePath
 )
 
-# TODO: update destination path to \\wattle\grpdata\..??????
 # Get timestamp (to milliseconds) to create unique folder name
 $TimeStamp = Get-Date -Format "ddMMyyyyHHmmssfff"
-$DestinationPath = "\\nasfile10.cmltd.net.au\grpdata\Ollie\PromotionExportAutomation\" + $TimeStamp
+$DestinationPath = "\\nasfile10\grpdata\Ollie\PromotionExportAutomation\" + $TimeStamp
 
 # Unzip all files
 Get-ChildItem -Path $SourcePath -Recurse | ForEach-Object {
@@ -37,9 +36,5 @@ Get-ChildItem -Path $DestinationPath -Recurse -File | ForEach-Object {
     }
 }
 
+# Output the $DestinationPath variable to feed into the next script
 Write-Host "###vso[task.setvariable variable=UnzipOutput;isOutput=true]$DestinationPath"
-
-# Calling initiate-ansible.ps1
-$CurrentDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
-$NextDir = Join-Path -Path $CurrentDir -ChildPath "initiate-ansible.ps1"
-& $NextDir

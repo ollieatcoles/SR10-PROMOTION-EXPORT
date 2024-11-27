@@ -6,10 +6,8 @@
 
 parameters:
 - name: SourcePath
-  displayName: Enter source path to file
+  displayName: Enter source path to file (must be in either "\\wattle\..." or "\\nasfile10\...")
   type: string
-# I don't think this works since it needs a remote file location?
-# Check Paul's .ps1 script (line 397-401) might be an example of how to solve this
 
 - name: Environment
   displayName: Enter R10 environment to be processed

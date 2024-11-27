@@ -162,6 +162,7 @@ Function Main {
         # PromotionExport: if no error found and expected log file is produced
         If (!($HasError) -and $HasLog) {
             Write-Host "Promotion export process has been successfully completed!"
+            Write-Host "Remember to check 'Promotions' on OfficeClient!"
             return 0
         } else {
             # PromotionExport: if error found, print message and stop the pipeline
@@ -182,6 +183,7 @@ Function Main {
             # PromotionExport: if no error found and expected log file is produced
             If (!($HasError) -and $HasLog) {
                 Write-Host "Promotion export process has been successfully completed!"
+                Write-Host "Remember to check 'Promotions' on OfficeClient!"
                 return 0
             } else {
                 Write-Host "There has been an error with promotion files!"
@@ -193,5 +195,9 @@ Function Main {
         }
     }
 }
+
+#########################################
+######   FUNCTIONS START HERE     #######
+#########################################
 
 Main
