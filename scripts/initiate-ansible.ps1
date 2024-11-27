@@ -18,8 +18,6 @@ Write-Host "-Mware: " $Mware
 
 # ????????????????????????????????????????
 $HeaderAuth = @{ Authorization = "Basic " + [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes("$($AnsibleUser):$($AnsiblePass)")) }
-$VenafiPath = "\VED\Policy\Non-Production\Applications\Store Customer Platforms"
-$Body = $null
 $GroupList = @{}
 
 Function DeleteGroups {
@@ -38,7 +36,7 @@ Function DeleteGroups {
             } else {
                 Write-Host "Found and deleting $GroupToDelete"
                 $DeleteGroupUrl = "https://aap.cmltd.net.au/api/v2/groups/$GroupID/" 
-                $DeleteGroup = Invoke-WebRequest -Uri $DeleteGroupUrl -Method Delete -Headers $HeaderAuth -UseBasicParsing -ErrorAction Ignore -Noproxy
+                Invoke-WebRequest -Uri $DeleteGroupUrl -Method Delete -Headers $HeaderAuth -UseBasicParsing -ErrorAction Ignore -Noproxy
             }
         } catch {$_}
     }
@@ -100,7 +98,7 @@ Function CreateHosts {
                 }
 
                 try {
-                    $CreateHostsInGroup = Invoke-WebRequest -Uri $HostGroupUrl -Method Post -Body ($PostParams | ConvertTo-Json) -ContentType 'application/json' -Headers $HeaderAuth -UseBasicParsing -ErrorAction Ignore -Noproxy
+                    Invoke-WebRequest -Uri $HostGroupUrl -Method Post -Body ($PostParams | ConvertTo-Json) -ContentType 'application/json' -Headers $HeaderAuth -UseBasicParsing -ErrorAction Ignore -Noproxy
                 } catch {$_}
             }
         }
@@ -133,7 +131,7 @@ If ($Mware -match "") {
 $Online = Test-Connection -Cn $RESB -BufferSize 16  -Count 4 -TimeToLive 10 -ea 0 -quiet
 
 $RESB += ".retail.ad.cmltd.net.au"
-$MyObj = "" | Select Host, Group
+$MyObj = "" | Select-Object Host, Group
 $MyObj.host = $RESB
 $MyObj.group = "SR10_PROMOTION_EXPORT_RESB"
 $MyObjHostList += $MyObj
