@@ -13,8 +13,8 @@ Param(
     [string]$TemplateID
 )
 
-Write-Host "- Environment: " $Environment
-Write-Host "- Mware: " $Mware
+Write-Host "-Environment: " $Environment
+Write-Host "-Mware: " $Mware
 
 # ????????????????????????????????????????
 $HeaderAuth = @{ Authorization = "Basic " + [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes("$($AnsibleUser):$($AnsiblePass)")) }
@@ -144,7 +144,3 @@ If ($Online) {
     CreateHosts
     TriggerAnsible
 }
-
-$CurrentDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
-$NextDir = Join-Path -Path $CurrentDir -ChildPath "initiate-ansible.ps1"
-& $NextDir

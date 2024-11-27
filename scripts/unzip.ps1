@@ -38,3 +38,8 @@ Get-ChildItem -Path $DestinationPath -Recurse -File | ForEach-Object {
 }
 
 Write-Host "###vso[task.setvariable variable=UnzipOutput;isOutput=true]$DestinationPath"
+
+# Calling initiate-ansible.ps1
+$CurrentDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
+$NextDir = Join-Path -Path $CurrentDir -ChildPath "initiate-ansible.ps1"
+& $NextDir

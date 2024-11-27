@@ -1,10 +1,13 @@
-- name: "Process Promotion Export Files"
-  win_shell: |
-    $DestinationPath = "{{destination_path}}"
-    $ProcessFolder = "R:\LocalApp\RESB\Coles\Services\LMS"
+#########################################
+# ??????????????????????????????????
+# Ollie Le
+# v1.0
+#########################################
 
-    If (Test-Path $DestinationPath) {
-      Do {
-        #??
-      } Until ()
-    }
+- name: "Process Files"
+  win_shell: |
+    $SourcePath = "{{destination_path}}"
+
+    $CurrentDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
+    $NextDir = Join-Path -Path $CurrentDir -ChildPath "..\scripts\process-promotion.ps1"
+    & $NextDir -SourcePath $SourcePath
