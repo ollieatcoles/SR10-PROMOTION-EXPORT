@@ -13,14 +13,12 @@ Param(
     [string]$TemplateID
 )
 
-Write-Host "-Environment: " $Environment
-Write-Host "-Mware: " $Mware
+Write-Host "-Environment:" $Environment
+Write-Host "-Mware:" $Mware
 
-# TODO: confirm with Paul
 $HeaderAuth = @{ Authorization = "Basic " + [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes("$($AnsibleUser):$($AnsiblePass)")) }
 $GroupList = @{}
 
-# TODO: confirm with Paul
 Function DeleteGroups {
     ForEach ($Group in $MyObjHostList) {
         $GroupToDelete = $Group.group
@@ -29,7 +27,7 @@ Function DeleteGroups {
 
         try {
             $FindGroup = Invoke-WebRequest -Uri $FindGroupUrl -Method Get -Headers $HeaderAuth -UseBasicParsing -ErrorAction Ignore -Noproxy
-            $Response - $FindGroup.Content | ConvertFrom-Json
+            $Response = $FindGroup.Content | ConvertFrom-Json
             $GroupID = $Response.results[0].id
 
             If ($Response.count -eq 0) {
@@ -43,17 +41,16 @@ Function DeleteGroups {
     }
 }
 
-# TODO: confirm with Paul
 Function CreateGroups {
     ForEach ($Group in $MyObjHostList) {
-        $GroupToCreate - $Group.group
+        $GroupToCreate = $Group.group
         Write-Host "Group to create: " $GroupToCreate
         $FindGroupUrl = "https://aap.cmltd.net.au/api/v2/groups/?search=$($GroupToCreate)"
         $GroupCheck = Invoke-WebRequest -Uri $FindGroupUrl -Method Get -ContentType 'application/json' -Headers $HeaderAuth -UseBasicParsing -ErrorAction Ignore -Noproxy | ConvertFrom-Json
 
         if ($GroupCheck.count -eq 0) {
             $PostParams = @{
-                inventory = 185
+                inventory = 265
                 name = $GroupToCreate
                 variables = @{
                     ansible_ssh_common_args = "-o StrictHostKeyChecking=no -o userknownhostsfile=/dev/null"
@@ -78,7 +75,6 @@ Function CreateGroups {
     return $GroupList
 }
 
-# TODO: confirm with Paul
 Function CreateHosts {
     ForEach ($MyHost in $MyObjHostList) {
         ForEach ($Group in $GroupList.Keys) {
@@ -90,7 +86,7 @@ Function CreateHosts {
                 $HostGroupUrl = "https://aap.cmltd.net.au/api/v2/groups/$GroupID/hosts/"
 
                 $PostParams = @{
-                    inventory = 185
+                    inventory = 265
                     name = $HostName
                     variables = @{
                         ansible_ssh_common_args = "-o StrictHostKeyChecking=no -o userknownhostsfile=/dev/null"
@@ -108,11 +104,11 @@ Function CreateHosts {
     }
 }
 
-# TODO: confirm with Paul about templateID
 Function TriggerAnsible {
     $Url = "https://aap.cmltd.net.au/api/v2/job_templates/$TemplateID/launch/" 
     
     try {
+        Write-Host "Triggering Ansible"
         Invoke-WebRequest -Uri $Url -Method Post -ContentType 'application/json' -Headers $HeaderAuth -UseBasicParsing -Noproxy
     } catch {$_}
 }
@@ -121,7 +117,7 @@ Function TriggerAnsible {
 ######   FUNCTIONS START HERE     #######
 #########################################
 
-# TODO: confirm with Paul
+# Retrieving RESB server out of Mware
 If ($Mware -match "") {
     $MwareArray = $($Mware.split(" "))
 
@@ -132,18 +128,13 @@ If ($Mware -match "") {
     }
 } else {$RESB = $Mware}
 
-# Do a quick GetServerStatusInfo
-$Online = Test-Connection -Cn $RESB -BufferSize 16  -Count 4 -TimeToLive 10 -ea 0 -quiet
-
 $RESB += ".retail.ad.cmltd.net.au"
 $MyObj = "" | Select-Object Host, Group
 $MyObj.host = $RESB
 $MyObj.group = "SR10_PROMOTION_EXPORT_RESB"
 $MyObjHostList += $MyObj
 
-If ($Online) {
-    DeleteGroups
-    CreateGroups
-    CreateHosts
-    TriggerAnsible
-}
+DeleteGroups
+CreateGroups
+CreateHosts
+TriggerAnsible

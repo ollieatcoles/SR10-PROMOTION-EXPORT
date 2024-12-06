@@ -6,7 +6,7 @@
 
 parameters:
   - name: SourcePath
-    displayName: Enter source file path (either "\\wattle\.." or "\\nasfile10\..")
+    displayName: Enter source file path within quotation marks (e.g. "\\wattle\.." or "\\nasfile10\..")
     type: string
 
   - name: Environment
@@ -88,6 +88,8 @@ stages:
               targetType: "filePath"
               filePath: $(System.DefaultWorkingDirectory)/scripts/unzip.ps1
               arguments: -SourcePath ${{ parameters.SourcePath }}
+            env:
+              DestinationPath: ""
 
           - task: PowerShell@2
             displayName: Initiate Ansible
@@ -96,4 +98,10 @@ stages:
               pwsh: true
               targetType: "filePath"
               filePath: $(System.DefaultWorkingDirectory)/scripts/initiate-ansible.ps1
-              arguments: -DestinationPath $(ExtractAllFiles.DestinationPath) -Environment  ${{ parameters.Environment }} -Mware '$(mware)' -AnsibleUser $(aap-user) -AnsiblePass $(aap-password) -TemplateID -templateId "829"
+              arguments: >
+                -DestinationPath '$(DestinationPath)'
+                -Environment '${{ parameters.Environment }}'
+                -Mware '$(mware)'
+                -AnsibleUser '$(aap-user)'
+                -AnsiblePass '$(aap-password)' 
+                -TemplateID "829"

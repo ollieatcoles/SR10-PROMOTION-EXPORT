@@ -1,5 +1,5 @@
 ######################################################################################
-# Unzip all given files and organize them into either "LT" or "PromotionExport" folder
+# Unzip all given files and organize them into either "Metadata" or "Promotions" folder
 # Ollie Le
 # v1.0
 ######################################################################################
@@ -15,11 +15,14 @@ $DestinationPath = "\\nasfile10\grpdata\Ollie\PromotionExportAutomation\" + $Tim
 # Unzip all files
 Get-ChildItem -Path $SourcePath -Recurse | ForEach-Object {
     Expand-Archive -LiteralPath $_.FullName -DestinationPath $DestinationPath
+
+    Write-Host $TimeStamp
+    Write-Host $_.Name
 }
 
 # Create 2 folder for LT files and PromotionExport files
-$DestinationLT = $DestinationPath + "\LT"
-$DestinationPromotionExport = $DestinationPath + "\PromotionExport"
+$DestinationLT = $DestinationPath + "\Metadata"
+$DestinationPromotionExport = $DestinationPath + "\Promotions"
 
 New-Item -ItemType Directory -Force -Path $DestinationLT, $DestinationPromotionExport
 
@@ -37,4 +40,5 @@ Get-ChildItem -Path $DestinationPath -Recurse -File | ForEach-Object {
 }
 
 # Output the $DestinationPath variable to feed into the next script
-Write-Host "###vso[task.setvariable variable=UnzipOutput;isOutput=true]$DestinationPath"
+[Environment]::SetEnvironmentVariable("DestinationPath", $DestinationPath, "Process")
+Write-Host "Extraction completed. Destination Path: $DestinationPath"

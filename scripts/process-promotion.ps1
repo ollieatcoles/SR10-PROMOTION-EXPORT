@@ -56,6 +56,30 @@ Function ProcessFiles {
     return $HasError, $HasLog
 }
 
+Function Benign {
+    Param(
+        [string] $FilePath,
+        [string] $TimeStamp
+    )
+    $ErrContent = Get-Content -Path $FilePath -Raw
+    $ErrEntries = $ErrContent -split "(?=\n$($TimeStamp))"
+
+    If ($ErrEntries) {
+        $LatestEntry = $ErrEntries[-1]
+
+        If ($LatestEntry -match "Line: Image already exists") {
+            Write-Host "Begin error: `"Line: Image already exists`""
+            Return 0
+        } elseif ($LatestEntry -match "Message: Unsupported Promotion") {
+            Write-Host "Begin error: `"Message: Unsupported Promotion`""
+            Return 0
+        } else {
+            Return 1
+        }
+    }
+    Return 0
+}
+
 Function ErrorCheck {
     Param(
         [string] $FileType,
@@ -82,7 +106,11 @@ Function ErrorCheck {
             # Case 2: there is error log today and is indeed our log
             Write-Host "Error detected"
             Write-Host "-----------------"
-            return 1
+
+            $TimeStamp = Get-Date -Format "yyyy-MM-dd"
+            $Benign = Benign -FilePath $CheckErrorFolder -TimeStamp $TimeStamp
+            
+            return $Benign
         }
     } else {
         # Case 3: if no error log was output
@@ -147,7 +175,7 @@ Function LogCheck {
 Function Main {
 
     # Processing the LT files
-    $Result = ProcessFiles -FileType "LT"
+    $Result = ProcessFiles -FileType "Metadata"
     $HasError = $Result[0]
     $HasLog = $Result[1]
 
@@ -155,44 +183,20 @@ Function Main {
     If (!($HasError) -and $HasLog) {
 
         # Processing the promotion files
-        $Result = ProcessFiles -FileType "Promotion Export"
+        $Result = ProcessFiles -FileType "Promotions"
         $HasError = $Result[0]
         $HasLog = $Result[1]
 
         # PromotionExport: if no error found and expected log file is produced
         If (!($HasError) -and $HasLog) {
             Write-Host "Promotion export process has been successfully completed!"
-            Write-Host "Remember to check 'Promotions' on OfficeClient!"
-            return 0
         } else {
             # PromotionExport: if error found, print message and stop the pipeline
-            Write-Host "There has been an error with promotion files!"
-            return 100
+            throw [MyCustomException]::new("There has been an error with promotions files!")
         }
     } else {
-        # Metadata: if error found, ask user if they want to continue on
-        $Continue = (Read-Host "There has been an error with the metadata file. Would you like to continue? (Y or N)").ToUpper()
-
-        If ($Continue -match "Y") {
-
-            # Processing the promotion files
-            $Result = ProcessFiles -FileType "Promotion Export"
-            $HasError = $Result[0]
-            $HasLog = $Result[1]
-
-            # PromotionExport: if no error found and expected log file is produced
-            If (!($HasError) -and $HasLog) {
-                Write-Host "Promotion export process has been successfully completed!"
-                Write-Host "Remember to check 'Promotions' on OfficeClient!"
-                return 0
-            } else {
-                Write-Host "There has been an error with promotion files!"
-                return 100
-            }
-        } else {
-            Write-Host "User has stopped the process."
-            return 99
-        }
+        # Metadata: if error found and it is not a benign error, stop the process
+        throw [MyCustomException]::new("There has been an error with metadata files!")
     }
 }
 
